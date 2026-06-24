@@ -82,6 +82,106 @@ public function show(int $id)
 | `HttpExceptionPipe` | `Hyperf\HttpMessage\Exception\HttpException` |
 | `ValidationExceptionPipe` | `Hyperf\Validation\ValidationException` |
 
+### Exception Handler 顺序
+
+Hyperf 会按 `config/autoload/exceptions.php` 中 `http` 数组的**先后顺序**依次尝试 Handler：先调用 `isValid()`，为 `true` 则执行 `handle()`；若 Handler 调用了 `stopPropagation()`，后续 Handler 不再执行。
+
+本包的 `ApiExceptionHandler` 行为如下：
+
+| 方法 | 行为 |
+| --- | --- |
+| `isValid()` | 仅 API 请求返回 `true`（`Accept: application/json` 或路径匹配 `/api/*`） |
+| `handle()` | 返回统一 JSON，并调用 `stopPropagation()` |
+
+非 API 请求（如后台页面）会自动跳过，交给后续 Handler 处理。
+
+#### 推荐顺序
+
+`ApiExceptionHandler` 应排在会提前 `stopPropagation()`、且可能先于本包处理 API 异常的 Handler **之前**，尤其是 `HttpExceptionHandler` 和兜底的 `AppExceptionHandler`。
+
+```php
+// config/autoload/exceptions.php
+return [
+    'handler' => [
+        'http' => [
+            // 可选：项目自定义业务异常（只处理特定异常类）
+            // App\Exception\Handler\BizExceptionHandler::class,
+
+            // 本包：API 统一 JSON（应在 HttpExceptionHandler 之前）
+            \FeloZ\HyperfApiResponse\Exception\Handler\ApiExceptionHandler::class,
+
+            // 框架默认
+            Hyperf\HttpServer\Exception\Handler\HttpExceptionHandler::class,
+
+            // 项目兜底
+            App\Exception\Handler\AppExceptionHandler::class,
+        ],
+    ],
+];
+```
+
+| 顺序错误 | 典型现象 |
+| --- | --- |
+| `HttpExceptionHandler` 在本包之前 | `/api/xxx` 404 返回纯文本，而非统一 JSON |
+| `AppExceptionHandler` 在本包之前且 `isValid` 恒为 `true` | 所有异常被项目 Handler 拦截，本包不生效 |
+
+#### 默认安装通常无需调整
+
+本包通过 `ConfigProvider` 注册 Handler。Hyperf 合并配置时，组件 Provider 先于 `config/autoload/exceptions.php`，因此常见最终顺序为：
+
+```
+ApiExceptionHandler → HttpExceptionHandler → AppExceptionHandler
+```
+
+仅在以下情况需要手动检查：修改过 Handler 顺序、使用了 `#[ExceptionHandler]` 注解、或存在 catch-all 的 `AppExceptionHandler`。
+
+#### 如何检查
+
+**1. 查看配置文件**
+
+确认 `ApiExceptionHandler` 位于 `HttpExceptionHandler` 和 `AppExceptionHandler` 之前。
+
+**2. 查看运行时顺序**
+
+```php
+var_dump(config('exceptions.handler.http'));
+```
+
+期望类似：
+
+```php
+[
+    0 => 'FeloZ\HyperfApiResponse\Exception\Handler\ApiExceptionHandler',
+    1 => 'Hyperf\HttpServer\Exception\Handler\HttpExceptionHandler',
+    2 => 'App\Exception\Handler\AppExceptionHandler',
+]
+```
+
+**3. 功能验证（最可靠）**
+
+```bash
+curl -i -H "Accept: application/json" http://127.0.0.1:9501/api/not-exists
+```
+
+顺序正确时，响应应包含统一 JSON 结构：
+
+```json
+{
+  "status": false,
+  "code": 404,
+  "message": "...",
+  "data": null,
+  "error": {}
+}
+```
+
+若返回纯文本或非统一 JSON，说明 Handler 顺序需要调整。
+
+#### 自定义 Handler 的放置原则
+
+- 只处理特定业务异常（如 `BizException`）→ 放在 `ApiExceptionHandler` **之前**
+- 兜底所有异常（`isValid` 恒为 `true`）→ 放在 `ApiExceptionHandler` **之后**
+
 ## 配置
 
 配置文件：`config/autoload/felo-api-response.php`
@@ -105,15 +205,6 @@ FELO_API_ENABLE_EXCEPTION_HANDLER=true
 FELO_API_HIDE_ERROR=true
 APP_DEBUG=false
 ```
-
-## 与 hyperf-helper 的关系
-
-本包可独立使用。若同时安装 `felo-z/hyperf-helper`，两者互补：
-
-| 包 | 职责 |
-| --- | --- |
-| `hyperf-helper` | 日志、容器、HTTP 等全局 helper |
-| `hyperf-api-response` | 统一 API 响应 + 异常接管 |
 
 ## 开发
 
