@@ -1,0 +1,71 @@
+{
+  "name": "felo-z/hyperf-api-response",
+  "description": "Hyperf API response and exception handler with unified JSON contract",
+  "type": "library",
+  "keywords": [
+    "hyperf",
+    "api",
+    "response",
+    "exception",
+    "json"
+  ],
+  "homepage": "https://github.com/Felo-Z/hyperf-api-response",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "FeloZ",
+      "email": "zlfsqlm@gmail.com"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/Felo-Z/hyperf-api-response/issues",
+    "source": "https://github.com/Felo-Z/hyperf-api-response"
+  },
+  "require": {
+    "php": "^8.2",
+    "hyperf/config": "^3.2",
+    "hyperf/context": "^3.2",
+    "hyperf/contract": "^3.2",
+    "hyperf/exception-handler": "^3.2",
+    "hyperf/http-server": "^3.2",
+    "hyperf/pipeline": "^3.2",
+    "hyperf/stringable": "^3.2",
+    "hyperf/support": "^3.2",
+    "psr/http-message": "^1.0 || ^2.0"
+  },
+  "suggest": {
+    "hyperf/validation": "Required for ValidationExceptionPipe (~3.2.0)",
+    "hyperf/auth": "Required for AuthenticationExceptionPipe (~3.2.0)",
+    "felo-z/hyperf-helper": "Optional helpers such as app() and is_pro()"
+  },
+  "autoload": {
+    "psr-4": {
+      "FeloZ\\HyperfApiResponse\\": "src"
+    },
+    "files": [
+      "src/helpers.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests"
+    }
+  },
+  "require-dev": {
+    "hyperf/di": "^3.2",
+    "hyperf/http-message": "^3.2",
+    "mockery/mockery": "^1.6",
+    "phpunit/phpunit": "^11.0"
+  },
+  "extra": {
+    "hyperf": {
+      "config": "FeloZ\\HyperfApiResponse\\ConfigProvider"
+    }
+  },
+  "scripts": {
+    "test": "swoole-cli vendor/bin/phpunit --colors=always"
+  },
+  "config": {
+    "allow-plugins": true
+  }
+}
