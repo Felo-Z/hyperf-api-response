@@ -21,6 +21,25 @@ trait Macroable
         return isset(static::$macros[$name]);
     }
 
+    public static function __callStatic(string $method, array $parameters): mixed
+    {
+        if (! static::hasMacro($method)) {
+            throw new BadMethodCallException(sprintf(
+                'Method %s::%s does not exist.',
+                static::class,
+                $method
+            ));
+        }
+
+        $macro = static::$macros[$method];
+
+        if ($macro instanceof Closure) {
+            $macro = $macro->bindTo(null, static::class);
+        }
+
+        return $macro(...$parameters);
+    }
+
     public function __call(string $method, array $parameters): mixed
     {
         if (! static::hasMacro($method)) {

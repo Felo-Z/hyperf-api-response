@@ -42,7 +42,7 @@ interface ApiResponseContract
     public function exception(Throwable $throwable): ResponseInterface;
 
     public function json(
-        bool|int|string $status,
+        bool $status,
         int $code,
         string $message = '',
         mixed $data = null,

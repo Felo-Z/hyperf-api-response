@@ -1,11 +1,17 @@
 # Hyperf API Response
 
-Hyperf 3.2+ 统一 API 响应与异常处理扩展包，JSON 契约与 `felo-z/laravel-helper` 对齐。
+Hyperf 3.2+ 统一 API 响应与异常处理扩展包。
 
 ## 要求
 
 - PHP >= 8.2
 - Hyperf >= 3.2
+
+## 跨框架对齐
+
+Laravel 侧对应实现：[`felo-z/laravel-api-response`](https://github.com/Felo-Z/laravel-api-response)（PHP >= 8.4，Laravel `^13.0`）。
+
+两包共享相同的 JSON 契约、`ap()` 调用方式与 Pipeline 设计，便于 Hyperf 与 Laravel 服务返回一致格式。
 
 ## 安装
 

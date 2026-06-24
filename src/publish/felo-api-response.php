@@ -16,6 +16,8 @@ return [
         'enable_exception_handler' => (bool) env('FELO_API_ENABLE_EXCEPTION_HANDLER', true),
         'render_api_paths' => ['/api/*'],
         'hide_error_when_not_debug' => (bool) env('FELO_API_HIDE_ERROR', true),
+        'fallback_success_status_code' => 200,
+        'fallback_error_status_code' => 400,
         'pipes' => [
             MessagePipe::class,
             ErrorPipe::class,

@@ -279,7 +279,7 @@ class ApiResponse implements ApiResponseContract
     }
 
     public function json(
-        bool|int|string $status,
+        bool $status,
         int $code,
         string $message = '',
         mixed $data = null,
@@ -287,7 +287,7 @@ class ApiResponse implements ApiResponseContract
     ): PsrResponseInterface {
         return $this->newPipeline()
             ->send([
-                'status' => (bool) $status,
+                'status' => $status,
                 'code' => $code,
                 'message' => $message,
                 'data' => $data,
@@ -316,7 +316,7 @@ class ApiResponse implements ApiResponseContract
     {
         return static function (Throwable $throwable): array {
             $code = $throwable->getCode();
-            $errorCode = is_int($code) && $code >= 100 && $code <= 599
+            $errorCode = is_int($code) && $code >= 400 && $code <= 599
                 ? $code
                 : 500;
 
@@ -346,11 +346,15 @@ class ApiResponse implements ApiResponseContract
             }
 
             $body = json_encode($structure, $options);
+            $code = (int) ($structure['code'] ?? 0);
+            $statusCode = ($code >= 100 && $code <= 599)
+                ? $code
+                : ($structure['status'] ? 200 : 400);
 
             return $this->response
                 ->withHeader('Content-Type', 'application/json; charset=utf-8')
                 ->withBody(new SwooleStream((string) $body))
-                ->withStatus(200);
+                ->withStatus($statusCode);
         };
     }
 
