@@ -87,7 +87,7 @@ public function store(CreateUserRequest $request): ResponseInterface
 
 ## 3. 业务异常示例
 
-### 定义业务异常
+推荐实现 `BusinessThrowable` 接口，由内置 `BusinessExceptionPipe` 自动处理：
 
 ```php
 <?php
@@ -96,26 +96,27 @@ declare(strict_types=1);
 
 namespace App\Exception;
 
+use FeloZ\HyperfApiResponse\Support\Contracts\BusinessThrowable;
 use RuntimeException;
 
-class BizException extends RuntimeException
+class BizException extends RuntimeException implements BusinessThrowable
 {
     public function __construct(
         string $message,
-        protected int $bizCode,
-        protected array $context = []
+        protected int $businessCode,
+        protected ?array $errorData = null
     ) {
         parent::__construct($message);
     }
 
-    public function bizCode(): int
+    public function getBusinessCode(): int
     {
-        return $this->bizCode;
+        return $this->businessCode;
     }
 
-    public function context(): array
+    public function getErrorData(): ?array
     {
-        return $this->context;
+        return $this->errorData;
     }
 }
 ```
@@ -167,12 +168,12 @@ public function cancel(int $id, OrderService $service): ResponseInterface
 return ap()->debug(
     ['sql' => $query, 'bindings' => $bindings],
     '调试信息',
-    500
+    500  // HTTP 状态码
 );
 ```
 
 - `APP_DEBUG=true` 时返回调试详情
-- 生产环境 `hide_error_when_not_debug=true` 自动隐藏 error 字段
+- 生产环境 `hide_error_when_not_debug=true` 仅隐藏系统诊断类 `error`（堆栈等），校验/业务 `error` 仍会返回
 
 ## 5. 常见问题
 

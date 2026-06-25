@@ -7,7 +7,7 @@
 对比以下两种配置下的响应耗时差异：
 
 - **基线组**：关闭 `pipes`（空数组）
-- **实验组**：开启默认 `MessagePipe + ErrorPipe + StatusCodePipe`
+- **实验组**：开启默认 `MessagePipe + ErrorPipe`
 
 ## 2. 准备压测路由
 
@@ -33,7 +33,6 @@ Router::get('/api/__bench__/ok', static fn () => ap()->ok(['ping' => 'pong']));
 'pipes' => [
     MessagePipe::class,
     ErrorPipe::class,
-    StatusCodePipe::class,
 ],
 ```
 

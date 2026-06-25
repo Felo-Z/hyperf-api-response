@@ -1,6 +1,6 @@
 # API 响应项目扩展指南
 
-当项目需要比 HTTP 状态码更细粒度的业务语义时，推荐使用"项目侧扩展"方案：业务码常量 + 业务异常 + 自定义异常 Pipe + 宏方法。
+当项目需要比框架通用码更细粒度的业务语义时，推荐使用"项目侧扩展"方案：业务码常量 + 业务异常 + 自定义异常 Pipe + 宏方法。
 
 ## 1. 业务码常量（项目内维护）
 
@@ -41,14 +41,14 @@ class OrderCode
 ```php
 use App\Support\ApiCodes\UserCode;
 
-return ap()->failed('用户不存在', UserCode::USER_NOT_FOUND);
+return ap()->failed('用户不存在', UserCode::USER_NOT_FOUND, 400);
 ```
 
 包内也提供了通用业务码 `FeloZ\HyperfApiResponse\Support\ApiCode`（`BIZ_OK`、`BIZ_FAILED` 等），适合快速上手。
 
-## 2. 业务异常 + Exception Pipe（推荐）
+## 2. 业务异常（推荐）
 
-### 2.1 定义业务异常
+### 2.1 方式 A：实现 `BusinessThrowable`（内置 Pipe 自动识别）
 
 ```php
 <?php
@@ -57,31 +57,36 @@ declare(strict_types=1);
 
 namespace App\Exception;
 
+use FeloZ\HyperfApiResponse\Support\Contracts\BusinessThrowable;
 use RuntimeException;
 
-class BizException extends RuntimeException
+class BizException extends RuntimeException implements BusinessThrowable
 {
     public function __construct(
         string $message,
-        protected int $bizCode,
-        protected array $context = []
+        protected int $businessCode,
+        protected ?array $errorData = null
     ) {
         parent::__construct($message);
     }
 
-    public function bizCode(): int
+    public function getBusinessCode(): int
     {
-        return $this->bizCode;
+        return $this->businessCode;
     }
 
-    public function context(): array
+    public function getErrorData(): ?array
     {
-        return $this->context;
+        return $this->errorData;
     }
 }
 ```
 
-### 2.2 定义异常 Pipe
+配置中已默认注册 `BusinessExceptionPipe`，实现该接口的异常会自动映射为统一 JSON（HTTP 400）。
+
+### 2.2 方式 B：自定义 Exception Pipe
+
+适用于已有异常类、不便改接口的情况：
 
 ```php
 <?php
@@ -90,17 +95,17 @@ declare(strict_types=1);
 
 namespace App\Support\ApiResponse\ExceptionPipes;
 
-use App\Exception\BizException;
+use App\Exception\LegacyBizException;
 use Closure;
 use Throwable;
 
-class BizExceptionPipe
+class LegacyBizExceptionPipe
 {
     public function handle(Throwable $throwable, Closure $next): array
     {
         $structure = $next($throwable);
 
-        if (! $throwable instanceof BizException) {
+        if (! $throwable instanceof LegacyBizException) {
             return $structure;
         }
 
@@ -108,20 +113,22 @@ class BizExceptionPipe
             'code' => $throwable->bizCode(),
             'message' => $throwable->getMessage(),
             'error' => $throwable->context(),
+            'http_status' => 400,
         ] + $structure;
     }
 }
 ```
 
-### 2.3 注册到配置
+### 2.3 注册到配置（方式 B）
 
 ```php
 // config/autoload/felo-api-response.php
 'exception_pipes' => [
+    \FeloZ\HyperfApiResponse\Support\ExceptionPipes\BusinessExceptionPipe::class,
     \FeloZ\HyperfApiResponse\Support\ExceptionPipes\AuthenticationExceptionPipe::class,
     \FeloZ\HyperfApiResponse\Support\ExceptionPipes\HttpExceptionPipe::class,
     \FeloZ\HyperfApiResponse\Support\ExceptionPipes\ValidationExceptionPipe::class,
-    \App\Support\ApiResponse\ExceptionPipes\BizExceptionPipe::class,
+    \App\Support\ApiResponse\ExceptionPipes\LegacyBizExceptionPipe::class,
 ],
 ```
 
@@ -146,7 +153,7 @@ use FeloZ\HyperfApiResponse\Support\ApiResponse;
 // 在 Listener 或 bootstrap 中注册
 ApiResponse::macro('userNotFound', function () {
     /** @var ApiResponse $this */
-    return $this->failed('用户不存在', 200404, ['type' => 'biz_error']);
+    return $this->failed('用户不存在', 200404, 400, ['type' => 'biz_error']);
 });
 
 // 业务中使用
@@ -177,7 +184,7 @@ app/
 │   └── ApiResponse/
 │       ├── Pipes/
 │       └── ExceptionPipes/
-│           └── BizExceptionPipe.php
+│           └── LegacyBizExceptionPipe.php
 ```
 
 ## 6. 设计原则

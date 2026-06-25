@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FeloZ\HyperfApiResponse\Support\ExceptionPipes;
 
 use Closure;
+use FeloZ\HyperfApiResponse\Support\ApiCode;
 use Throwable;
 
 class ValidationExceptionPipe
@@ -27,9 +28,10 @@ class ValidationExceptionPipe
         }
 
         return [
-            'code' => $throwable->status,
+            'code' => ApiCode::BIZ_VALIDATION_ERROR,
             'message' => $firstMessage,
             'error' => $errors,
+            'http_status' => $throwable->status,
         ] + $structure;
     }
 }

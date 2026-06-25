@@ -7,11 +7,17 @@ Hyperf 3.2+ 统一 API 响应与异常处理扩展包。
 - PHP >= 8.2
 - Hyperf >= 3.2
 
-## 跨框架对齐
+## 相关项目
 
-Laravel 侧对应实现：[`felo-z/laravel-api-response`](https://github.com/Felo-Z/laravel-api-response)（PHP >= 8.4，Laravel `^13.0`）。
+Laravel 侧有独立实现：[`felo-z/laravel-api-response`](https://github.com/Felo-Z/laravel-api-response)。
 
-两包共享相同的 JSON 契约、`ap()` 调用方式与 Pipeline 设计，便于 Hyperf 与 Laravel 服务返回一致格式。
+两包共享 `ap()` 调用方式与 Pipeline 扩展机制，但 **JSON 契约不同**（见下表）。混用两套后端时，前端需按各自约定处理 `code` 字段。
+
+| | Hyperf 版（本包） | Laravel 版 |
+| --- | --- | --- |
+| 成功 body `code` | `0`（`ApiCode::BIZ_OK`） | HTTP 状态码（如 `200`） |
+| 失败 body `code` | 业务码（如 `1004`、`200404`） | HTTP 状态码（如 `404`） |
+| HTTP 状态码 | 独立参数 / 快捷方法控制 | 由 body `code` 推导 |
 
 ## 安装
 
@@ -28,10 +34,12 @@ php bin/hyperf.php vendor:publish felo-z/hyperf-api-response
 ## 快速使用
 
 ```php
+use FeloZ\HyperfApiResponse\Support\ApiCode;
+
 ap()->ok(['id' => 1], 'ok');
 ap()->success(['id' => 1], 'success');
-ap()->message('created', 201, ['id' => 1]);
-ap()->failed('bad request', 400, ['field' => 'name']);
+ap()->message('创建成功', ['id' => 1], 201);
+ap()->failed('参数错误', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
 ap()->exception($throwable);
 ```
 
@@ -49,7 +57,7 @@ public function show(int $id)
 ```json
 {
   "status": true,
-  "code": 200,
+  "code": 0,
   "message": "OK",
   "data": {},
   "error": {}
@@ -58,18 +66,22 @@ public function show(int $id)
 
 | 字段 | 说明 |
 | --- | --- |
-| `status` | 业务状态（`true` / `false`） |
-| `code` | 业务码或 HTTP 状态码 |
+| `status` | 业务状态（`true` / `false`），满足 `status === (code === 0)` |
+| `code` | **业务码**（`0` = 成功，`1000+` = 框架/业务错误，项目域码建议 `≥ 10000`） |
 | `message` | 提示文案 |
 | `data` | 成功数据 |
-| `error` | 错误详情（非 debug 可按配置隐藏） |
+| `error` | 错误详情（生产环境仅隐藏系统堆栈类诊断信息） |
 
-## HTTP 状态码策略（smart）
+HTTP 状态码在传输层独立控制（如 `ok()` → 200、`notFound()` → 404），**不写入** body `code`。
 
-- `code` 在 `100–599`：HTTP 状态码 = `code`
-- `code` 为业务码：成功 → HTTP `200`，失败 → HTTP `400`
+## HTTP 状态码策略
 
-避免业务失败被误判为系统 500。
+body `code` 与 HTTP 状态码已解耦：
+
+- **body `code`**：始终为业务码（成功 `0`，失败 `1000+` 或项目自定义码）
+- **HTTP 状态码**：由方法参数或快捷方法决定（如 `failed($msg, $code, 400, $error)`、`notFound()` → 404）
+
+业务失败默认 HTTP `400`，避免被网关误判为系统 500；需要时可显式传入其他 HTTP 码。
 
 ## 异常自动接管
 
@@ -84,6 +96,7 @@ public function show(int $id)
 
 | Pipe | 异常类型 |
 | --- | --- |
+| `BusinessExceptionPipe` | 实现 `BusinessThrowable` 契约的业务异常 |
 | `AuthenticationExceptionPipe` | `Hyperf\Auth\Exception\UnauthorizedException` |
 | `HttpExceptionPipe` | `Hyperf\HttpMessage\Exception\HttpException` |
 | `ValidationExceptionPipe` | `Hyperf\Validation\ValidationException` |
@@ -169,13 +182,13 @@ var_dump(config('exceptions.handler.http'));
 curl -i -H "Accept: application/json" http://127.0.0.1:9501/api/not-exists
 ```
 
-顺序正确时，响应应包含统一 JSON 结构：
+顺序正确时，响应应包含统一 JSON 结构（HTTP 404，body `code` 为 `1004`）：
 
 ```json
 {
   "status": false,
-  "code": 404,
-  "message": "...",
+  "code": 1004,
+  "message": "Not Found",
   "data": null,
   "error": {}
 }
@@ -216,8 +229,10 @@ APP_DEBUG=false
 
 ```bash
 composer install
-composer test   # 需要 swoole-cli
+composer test   # 需要 PHP Swoole 扩展，或 swoole-cli
 ```
+
+变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## License
 

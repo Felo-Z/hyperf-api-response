@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FeloZ\HyperfApiResponse\Support\ExceptionPipes;
 
 use Closure;
+use FeloZ\HyperfApiResponse\Support\ApiCode;
 use Throwable;
 
 class AuthenticationExceptionPipe
@@ -19,8 +20,9 @@ class AuthenticationExceptionPipe
         }
 
         return [
-            'code' => 401,
+            'code' => ApiCode::BIZ_UNAUTHORIZED,
             'message' => $throwable->getMessage() ?: 'Unauthenticated.',
+            'http_status' => 401,
         ] + $structure;
     }
 }

@@ -21,6 +21,16 @@ trait Macroable
         return isset(static::$macros[$name]);
     }
 
+    public static function forgetMacro(string $name): void
+    {
+        unset(static::$macros[$name]);
+    }
+
+    public static function clearMacros(): void
+    {
+        static::$macros = [];
+    }
+
     public static function __callStatic(string $method, array $parameters): mixed
     {
         if (! static::hasMacro($method)) {

@@ -19,9 +19,9 @@ return [
         'pipes' => [
             \FeloZ\HyperfApiResponse\Support\Pipes\MessagePipe::class,
             \FeloZ\HyperfApiResponse\Support\Pipes\ErrorPipe::class,
-            \FeloZ\HyperfApiResponse\Support\Pipes\StatusCodePipe::class,
         ],
         'exception_pipes' => [
+            \FeloZ\HyperfApiResponse\Support\ExceptionPipes\BusinessExceptionPipe::class,
             \FeloZ\HyperfApiResponse\Support\ExceptionPipes\AuthenticationExceptionPipe::class,
             \FeloZ\HyperfApiResponse\Support\ExceptionPipes\HttpExceptionPipe::class,
             \FeloZ\HyperfApiResponse\Support\ExceptionPipes\ValidationExceptionPipe::class,
@@ -50,9 +50,8 @@ FELO_API_HIDE_ERROR=true
 ## 3. 前端配合
 
 - 请求统一带 `Accept: application/json`
-- 判定规则：先看 `status`，失败再按 `code` 分支
-- `401` 统一处理登录态
-- `422` 读取 `error` 渲染表单错误
+- 判定规则：先看 `status`，失败再按 body `code` 分支（`0` = 成功，`1002` = 未登录，`1001` = 校验失败）
+- HTTP 401/422 可用于 axios 拦截器，业务语义以 body `code` 为准
 
 ## 4. 排错清单
 

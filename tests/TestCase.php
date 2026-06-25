@@ -38,8 +38,23 @@ abstract class TestCase extends BaseTestCase
         ApplicationContext::setContainer($this->container);
     }
 
+    protected function tearDown(): void
+    {
+        ApiResponse::clearMacros();
+
+        parent::tearDown();
+    }
+
     protected function decodeResponse(PsrResponseInterface $response): array
     {
         return json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    protected function setAppDebug(bool $debug): void
+    {
+        $this->container->get(ConfigInterface::class)->set(
+            'felo-api-response.api_response.app_debug',
+            $debug
+        );
     }
 }

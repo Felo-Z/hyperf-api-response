@@ -26,10 +26,12 @@ php bin/hyperf.php vendor:publish felo-z/hyperf-api-response
 ## 2. 快速开始
 
 ```php
+use FeloZ\HyperfApiResponse\Support\ApiCode;
+
 // 全局辅助函数
 ap()->ok(['id' => 1], '查询成功');
 ap()->created($user, '创建成功', '/api/users/1');
-ap()->failed('参数错误', 400, ['field' => 'name']);
+ap()->failed('参数错误', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
 ap()->exception(new \Exception('boom'));
 ```
 
@@ -40,7 +42,7 @@ ap()->exception(new \Exception('boom'));
 ```json
 {
   "status": true,
-  "code": 200,
+  "code": 0,
   "message": "OK",
   "data": {},
   "error": {}
@@ -49,36 +51,46 @@ ap()->exception(new \Exception('boom'));
 
 | 字段 | 说明 |
 |------|------|
-| `status` | 业务状态，`true` 或 `false` |
-| `code` | 业务码或 HTTP 状态码 |
+| `status` | 业务状态，`true` 或 `false`，满足 `status === (code === 0)` |
+| `code` | **业务码**（`0` = 成功，`1000+` = 框架错误，项目域码建议 `≥ 10000`） |
 | `message` | 面向客户端的提示文案 |
 | `data` | 成功数据（失败时为 `null`） |
 | `error` | 错误详情（生产环境可隐藏） |
+
+HTTP 状态码在传输层独立存在，不写入 body `code`。
 
 ## 4. 核心方法
 
 | 方法 | 场景 | 说明 |
 |------|------|------|
-| `ok($data, $message)` | 常规查询成功 | 固定 200 |
-| `created($data, $message, $location)` | 创建成功 | 201，可带 `Location` 头 |
-| `accepted($data, $message)` | 异步受理 | 202 |
-| `success($data, $message, $code)` | 通用成功 | 可自定义成功码 |
-| `message($message, $code, $data)` | 文案优先成功 | 参数顺序偏提示语 |
-| `failed($message, $code, $error)` | 通用失败 | 推荐主入口 |
-| `error($message, $code, $error)` | 通用失败 | `failed` 别名 |
-| `debug($payload, $message, $code)` | 调试输出 | 仅 debug 模式显示详情 |
+| `ok($data, $message)` | 常规查询成功 | HTTP 200，body `code` = 0 |
+| `created($data, $message, $location)` | 创建成功 | HTTP 201，可带 `Location` 头 |
+| `accepted($data, $message)` | 异步受理 | HTTP 202 |
+| `noContent($message)` | 删除成功 | HTTP 204，**无响应 body**（符合 RFC） |
+| `resetContent($data, $message)` | 重置内容 | HTTP 205，**无响应 body**（符合 RFC） |
+| `success($data, $message, $httpStatus)` | 通用成功 | HTTP 可自定义，body `code` 恒为 0 |
+| `message($message, $data, $httpStatus)` | 文案优先成功 | body `code` 恒为 0，HTTP 由第 3 参控制 |
+| `failed($message, $code, $httpStatus, $error)` | 通用失败 | 推荐主入口 |
+| `error($message, $code, $httpStatus, $error)` | 通用失败 | `failed` 别名 |
+| `debug($payload, $message, $httpStatus)` | 调试输出 | 仅 debug 模式显示详情 |
 | `exception($throwable)` | 异常转统一响应 | 走 exception_pipes |
-| `json($status, $code, $message, $data, $error)` | 底层方法 | 完全控制所有字段 |
+| `json($code, $message, $data, $error, $httpStatus)` | 底层方法 | `status` 由 `code` 自动推导 |
 
 ## 5. HTTP 快捷方法
 
+快捷方法同时设置 HTTP 状态码与对应的框架业务码（body `code`）：
+
 ### 成功态
 
-`ok()` → 200、`created()` → 201、`accepted()` → 202、`nonAuthoritativeInformation()` → 203、`noContent()` → 204、`resetContent()` → 205、`partialContent()` → 206、`multiStatus()` → 207、`alreadyReported()` → 208、`imUsed()` → 226
+`ok()` → HTTP 200、`created()` → 201、`accepted()` → 202、`nonAuthoritativeInformation()` → 203、`noContent()` → 204、`resetContent()` → 205、`partialContent()` → 206、`multiStatus()` → 207、`alreadyReported()` → 208、`imUsed()` → 226
+
+成功时 body `code` 均为 `0`（`ApiCode::BIZ_OK`）。
 
 ### 错误态
 
-`badRequest()` → 400、`unauthorized()` → 401、`paymentRequired()` → 402、`forbidden()` → 403、`notFound()` → 404、`methodNotAllowed()` → 405、`notAcceptable()` → 406、`proxyAuthenticationRequired()` → 407、`requestTimeout()` → 408、`conflict()` → 409、`gone()` → 410、`lengthRequired()` → 411、`preconditionFailed()` → 412、`requestEntityTooLarge()` → 413、`requestUriTooLong()` → 414、`unsupportedMediaType()` → 415、`requestedRangeNotSatisfiable()` → 416、`expectationFailed()` → 417、`iAmATeapot()` → 418、`misdirectedRequest()` → 421、`unprocessableEntity()` → 422、`locked()` → 423、`failedDependency()` → 424、`tooEarly()` → 425、`upgradeRequired()` → 426、`preconditionRequired()` → 428、`tooManyRequests()` → 429、`requestHeaderFieldsTooLarge()` → 431、`unavailableForLegalReasons()` → 451、`internalServerError()` → 500
+`badRequest()` → HTTP 400 / `BIZ_FAILED`、`unauthorized()` → 401 / `BIZ_UNAUTHORIZED`、`forbidden()` → 403 / `BIZ_FORBIDDEN`、`notFound()` → 404 / `BIZ_NOT_FOUND`、`unprocessableEntity()` → 422 / `BIZ_VALIDATION_ERROR`、`tooManyRequests()` → 429 / `BIZ_TOO_MANY_REQUESTS`、`internalServerError()` → 500 / `BIZ_SYSTEM_ERROR` 等。
+
+完整列表见 `ApiResponse` 类源码。
 
 ## 6. 异常自动接管
 
@@ -98,15 +110,16 @@ ap()->exception(new \Exception('boom'));
 'api_response' => [
     'enable_exception_handler' => (bool) env('FELO_API_ENABLE_EXCEPTION_HANDLER', true),
     'render_api_paths' => ['/api/*'],
-    'hide_error_when_not_debug' => (bool) env('FELO_API_HIDE_ERROR', true),
-    'fallback_success_status_code' => 200,
+        'hide_error_when_not_debug' => (bool) env('FELO_API_HIDE_ERROR', true),
+        'app_debug' => (bool) env('APP_DEBUG', false),
+        'fallback_success_status_code' => 200,
     'fallback_error_status_code' => 400,
     'pipes' => [
         MessagePipe::class,
         ErrorPipe::class,
-        StatusCodePipe::class,
     ],
     'exception_pipes' => [
+        BusinessExceptionPipe::class,
         AuthenticationExceptionPipe::class,
         HttpExceptionPipe::class,
         ValidationExceptionPipe::class,
@@ -116,8 +129,11 @@ ap()->exception(new \Exception('boom'));
 
 ### HTTP 状态码策略
 
-- 当 `code` 是有效 HTTP 状态码（100–599）时，HTTP 响应状态码 = `code`
-- 当 `code` 是业务码（如 `200404`）时：成功 → `fallback_success_status_code`（默认 200），失败 → `fallback_error_status_code`（默认 400）
+body `code` 与 HTTP 状态码已解耦：
+
+- **body `code`**：业务码，由 `failed()` / 快捷方法 / Exception Pipe 写入
+- **HTTP 状态码**：由 `$httpStatus` 参数、快捷方法或 Exception Pipe 的 `http_status` 字段决定
+- `fallback_success_status_code` / `fallback_error_status_code`：当 structure 缺少 `http_status` 时，由 `destination()` 兜底（正常路径由 `buildJson()` 注入）
 
 ## 8. Pipe 扩展
 
@@ -174,6 +190,7 @@ class BizExceptionPipe
             'code' => $throwable->bizCode(),
             'message' => $throwable->getMessage(),
             'error' => $throwable->context(),
+            'http_status' => 400,
         ] + $structure;
     }
 }
@@ -205,7 +222,7 @@ class BizExceptionPipe
 use FeloZ\HyperfApiResponse\Support\ApiResponse;
 
 ApiResponse::macro('userNotFound', function () {
-    return $this->failed('用户不存在', 200404, ['type' => 'biz_error']);
+    return $this->failed('用户不存在', 200404, 400, ['type' => 'biz_error']);
 });
 
 // 使用
@@ -217,19 +234,19 @@ ap()->userNotFound();
 ### `ap()->failed()` 流程
 
 ```
-failed(message, code, error)
-  → json(false, code, message, null, error)
-    → Pipeline: MessagePipe → ErrorPipe → StatusCodePipe
-      → destination(): 生成 PSR-7 Response
+failed(message, bizCode, httpStatus, error)
+  → buildJson(bizCode, message, null, error, httpStatus)
+    → Pipeline: MessagePipe → ErrorPipe
+      → destination(): 推导 status/http_status，生成 PSR-7 Response
 ```
 
 ### `ap()->exception()` 流程
 
 ```
 exception(throwable)
-  → Pipeline: AuthenticationExceptionPipe → HttpExceptionPipe → ValidationExceptionPipe
-    → exceptionDestination(): 生成 code/message/error/headers 结构
-  → failed(message, code, error) + withHeaders(headers)
+  → Pipeline: BusinessExceptionPipe → AuthenticationExceptionPipe → HttpExceptionPipe → ValidationExceptionPipe
+    → exceptionDestination(): 生成 code/message/error/http_status/headers 结构
+  → buildJson(code, message, null, error, http_status) + withHeaders(headers)
     → 进入普通 pipes 流程
 ```
 
@@ -237,5 +254,5 @@ exception(throwable)
 
 - 业务代码优先使用快捷方法（如 `ok()`、`notFound()`），避免手写状态码
 - 统一错误输出建议直接抛异常，交给 `ApiExceptionHandler` 自动接管
-- 生产环境保持 `hide_error_when_not_debug = true`，避免泄露堆栈
+- 生产环境保持 `hide_error_when_not_debug = true`，仅隐藏系统诊断类 `error`（堆栈等），校验/业务 `error` 仍会返回
 - 对外 API 使用 `/api/*` 前缀，便于异常接管策略统一生效
