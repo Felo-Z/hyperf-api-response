@@ -306,7 +306,7 @@ class LegacyBizExceptionPipe
 ### 4.3 注册到配置（方式 B）
 
 ```php
-// config/autoload/felo-api-response.php
+// config/autoload/api-response.php
 'exception_pipes' => [
     \FeloZ\HyperfApiResponse\Support\ExceptionPipes\BusinessExceptionPipe::class,
     \FeloZ\HyperfApiResponse\Support\ExceptionPipes\AuthenticationExceptionPipe::class,

@@ -184,7 +184,7 @@ return api_response()->debug(
 );
 ```
 
-- `APP_DEBUG=true` 时返回调试详情
+- `API_RESPONSE_APP_DEBUG=true`（或未设置时 `APP_DEBUG=true`）时返回调试详情
 - 生产环境 `hide_error_when_not_debug=true` 仅隐藏系统诊断类 `error`（堆栈等），校验/业务 `error` 仍会返回
 
 ## 5. 常见问题
@@ -193,7 +193,7 @@ return api_response()->debug(
 
 检查：
 
-1. `FELO_API_ENABLE_EXCEPTION_HANDLER` 是否为 `true`
+1. `API_RESPONSE_ENABLE_EXCEPTION_HANDLER` 是否为 `true`
 2. 请求路径是否命中 `render_api_paths`（注意带前导 `/`）
 3. 请求头是否包含 `Accept: application/json`
 4. `ApiExceptionHandler` 是否注册在其他 Handler 之前（优先级）

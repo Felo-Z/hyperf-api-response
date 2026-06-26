@@ -15,7 +15,7 @@ class ErrorPipe
     public function handle(array $structure, Closure $next): ResponseInterface
     {
         $hideSystemError = ! app_debug()
-            && (bool) config('felo-api-response.api_response.hide_error_when_not_debug', true);
+            && (bool) config('api-response.hide_error_when_not_debug', true);
 
         if (array_key_exists('error', $structure) && $structure['error'] !== null) {
             if ($hideSystemError && $this->isSystemDiagnosticError((array) $structure['error'])) {

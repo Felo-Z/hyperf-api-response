@@ -246,27 +246,27 @@ curl -i -H "Accept: application/json" http://127.0.0.1:9501/api/not-exists
 
 ## 配置
 
-配置文件：`config/autoload/felo-api-response.php`
+配置文件：`config/autoload/api-response.php`
 
 ```php
 return [
-    'api_response' => [
-        'enable_exception_handler' => env('FELO_API_ENABLE_EXCEPTION_HANDLER', true),
-        'render_api_paths' => ['/api/*'],
-        'hide_error_when_not_debug' => env('FELO_API_HIDE_ERROR', true),
-        'pipes' => [...],
-        'exception_pipes' => [...],
-    ],
+    'enable_exception_handler' => env('API_RESPONSE_ENABLE_EXCEPTION_HANDLER', true),
+    'render_api_paths' => ['/api/*'],
+    'hide_error_when_not_debug' => env('API_RESPONSE_HIDE_ERROR', true),
+    'pipes' => [...],
+    'exception_pipes' => [...],
 ];
 ```
 
 ### 环境变量
 
 ```env
-FELO_API_ENABLE_EXCEPTION_HANDLER=true
-FELO_API_HIDE_ERROR=true
-APP_DEBUG=false
+API_RESPONSE_ENABLE_EXCEPTION_HANDLER=true
+API_RESPONSE_HIDE_ERROR=true
+API_RESPONSE_APP_DEBUG=false
 ```
+
+未设置 `API_RESPONSE_APP_DEBUG` 时回退读取 `APP_DEBUG`。
 
 ## 开发
 

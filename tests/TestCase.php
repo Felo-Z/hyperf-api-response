@@ -25,7 +25,7 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         $config = new Config([
-            'felo-api-response' => require dirname(__DIR__) . '/src/publish/felo-api-response.php',
+            'api-response' => require dirname(__DIR__) . '/src/publish/api-response.php',
         ]);
 
         $this->container = new Container((new DefinitionSourceFactory(true))());
@@ -53,7 +53,7 @@ abstract class TestCase extends BaseTestCase
     protected function setAppDebug(bool $debug): void
     {
         $this->container->get(ConfigInterface::class)->set(
-            'felo-api-response.api_response.app_debug',
+            'api-response.app_debug',
             $debug
         );
     }

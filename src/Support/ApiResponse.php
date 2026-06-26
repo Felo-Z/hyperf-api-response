@@ -375,8 +375,8 @@ class ApiResponse implements ApiResponseContract
             return (int) $structure['http_status'];
         }
 
-        $fallbackSuccess = (int) config('felo-api-response.api_response.fallback_success_status_code', 200);
-        $fallbackError = (int) config('felo-api-response.api_response.fallback_error_status_code', 400);
+        $fallbackSuccess = (int) config('api-response.fallback_success_status_code', 200);
+        $fallbackError = (int) config('api-response.fallback_error_status_code', 400);
 
         return $status ? $fallbackSuccess : $fallbackError;
     }
@@ -396,12 +396,12 @@ class ApiResponse implements ApiResponseContract
 
     protected function pipes(): array
     {
-        return (array) config('felo-api-response.api_response.pipes', []);
+        return (array) config('api-response.pipes', []);
     }
 
     protected function exceptionPipes(): array
     {
-        return (array) config('felo-api-response.api_response.exception_pipes', []);
+        return (array) config('api-response.exception_pipes', []);
     }
 
     /**

@@ -14,7 +14,7 @@ class RequestClassifier
 {
     public function shouldHandleAsApi(): bool
     {
-        if (! (bool) config('felo-api-response.api_response.enable_exception_handler', true)) {
+        if (! (bool) config('api-response.enable_exception_handler', true)) {
             return false;
         }
 
@@ -28,7 +28,7 @@ class RequestClassifier
         }
 
         $path = $request->getUri()->getPath();
-        foreach ((array) config('felo-api-response.api_response.render_api_paths', ['api/*']) as $pattern) {
+        foreach ((array) config('api-response.render_api_paths', ['api/*']) as $pattern) {
             if (Str::is($pattern, $path)) {
                 return true;
             }

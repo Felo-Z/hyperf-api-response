@@ -6,6 +6,15 @@
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-06-26
+
+### 重大变更
+
+- 配置根键 `felo-api-response` 重命名为 `api-response`；读取路径由 `config('felo-api-response.api_response.xxx')` 改为 `config('api-response.xxx')`
+- 发布配置文件由 `config/autoload/felo-api-response.php` 改为 `config/autoload/api-response.php`
+- 环境变量 `FELO_API_ENABLE_EXCEPTION_HANDLER` → `API_RESPONSE_ENABLE_EXCEPTION_HANDLER`，`FELO_API_HIDE_ERROR` → `API_RESPONSE_HIDE_ERROR`
+- 调试开关优先读 `API_RESPONSE_APP_DEBUG`，未设置时回退 `APP_DEBUG`
+
 ### 变更
 
 - 文档：业务码约定与代码对齐——`0` 成功、`1000–1999` 包内置 `ApiCode`、其余整数为项目自定义（运行时无范围校验）；移除「≥ 10000」表述
@@ -64,6 +73,7 @@
 - 统一 API JSON 响应与 `ApiExceptionHandler`
 - 响应辅助函数与 Pipeline 扩展机制
 
+[4.0.0]: https://github.com/Felo-Z/hyperf-api-response/compare/v3.0.0...v4.0.0
 [3.0.0]: https://github.com/Felo-Z/hyperf-api-response/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/Felo-Z/hyperf-api-response/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/Felo-Z/hyperf-api-response/releases/tag/v1.0.0

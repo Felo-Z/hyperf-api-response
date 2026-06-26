@@ -34,7 +34,7 @@ if (! function_exists('app_debug_cache_key')) {
     {
         if (ApplicationContext::hasContainer()) {
             try {
-                $value = config('felo-api-response.api_response.app_debug');
+                $value = config('api-response.app_debug');
                 if ($value !== null) {
                     return $value ? '1' : '0';
                 }
@@ -42,7 +42,7 @@ if (! function_exists('app_debug_cache_key')) {
             }
         }
 
-        return (string) env('APP_DEBUG', false);
+        return (string) env('API_RESPONSE_APP_DEBUG', env('APP_DEBUG', false));
     }
 }
 

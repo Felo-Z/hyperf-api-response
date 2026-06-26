@@ -30,13 +30,13 @@ class ConfigProvider
                     ],
                 ],
             ],
-            'felo-api-response' => require __DIR__ . '/publish/felo-api-response.php',
+            'api-response' => require __DIR__ . '/publish/api-response.php',
             'publish' => [
                 [
                     'id' => 'config',
-                    'description' => 'The config for felo-api-response.',
-                    'source' => __DIR__ . '/publish/felo-api-response.php',
-                    'destination' => BASE_PATH . '/config/autoload/felo-api-response.php',
+                    'description' => 'The config for api-response.',
+                    'source' => __DIR__ . '/publish/api-response.php',
+                    'destination' => BASE_PATH . '/config/autoload/api-response.php',
                 ],
             ],
         ];
