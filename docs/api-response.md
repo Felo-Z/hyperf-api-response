@@ -1,6 +1,6 @@
 # API 响应使用说明
 
-本文档说明 `felo-z/hyperf-api-response` 的用法，包括 `ap()` 辅助函数、异常处理器、快捷状态方法和可扩展配置。
+本文档说明 `felo-z/hyperf-api-response` 的用法，包括 `api_response()` 辅助函数、异常处理器、快捷状态方法和可扩展配置。
 
 相关文档：
 
@@ -29,10 +29,10 @@ php bin/hyperf.php vendor:publish felo-z/hyperf-api-response
 use FeloZ\HyperfApiResponse\Support\ApiCode;
 
 // 全局辅助函数
-ap()->ok(['id' => 1], '查询成功');
-ap()->created($user, '创建成功', '/api/users/1');
-ap()->failed('参数错误', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
-ap()->exception(new \Exception('boom'));
+api_response()->ok(['id' => 1], '查询成功');
+api_response()->created($user, '创建成功', '/api/users/1');
+api_response()->failed('参数错误', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
+api_response()->exception(new \Exception('boom'));
 ```
 
 ## 3. 响应结构
@@ -226,12 +226,12 @@ ApiResponse::macro('userNotFound', function () {
 });
 
 // 使用
-ap()->userNotFound();
+api_response()->userNotFound();
 ```
 
 ## 11. 执行流程
 
-### `ap()->failed()` 流程
+### `api_response()->failed()` 流程
 
 ```
 failed(message, bizCode, httpStatus, error)
@@ -240,7 +240,7 @@ failed(message, bizCode, httpStatus, error)
       → destination(): 推导 status/http_status，生成 PSR-7 Response
 ```
 
-### `ap()->exception()` 流程
+### `api_response()->exception()` 流程
 
 ```
 exception(throwable)

@@ -11,7 +11,7 @@ Hyperf 3.2+ 统一 API 响应与异常处理扩展包。
 
 Laravel 侧有独立实现：[`felo-z/laravel-api-response`](https://github.com/Felo-Z/laravel-api-response)。
 
-两包共享 `ap()` 调用方式与 Pipeline 扩展机制，但 **JSON 契约不同**（见下表）。混用两套后端时，前端需按各自约定处理 `code` 字段。
+两包共享 Pipeline 扩展机制；本包通过 `api_response()` 获取响应构造器。**JSON 契约不同**（见下表）。混用两套后端时，前端需按各自约定处理 `code` 字段。
 
 | | Hyperf 版（本包） | Laravel 版 |
 | --- | --- | --- |
@@ -36,11 +36,11 @@ php bin/hyperf.php vendor:publish felo-z/hyperf-api-response
 ```php
 use FeloZ\HyperfApiResponse\Support\ApiCode;
 
-ap()->ok(['id' => 1], 'ok');
-ap()->success(['id' => 1], 'success');
-ap()->message('创建成功', ['id' => 1], 201);
-ap()->failed('参数错误', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
-ap()->exception($throwable);
+api_response()->ok(['id' => 1], 'ok');
+api_response()->success(['id' => 1], 'success');
+api_response()->message('创建成功', ['id' => 1], 201);
+api_response()->failed('参数错误', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
+api_response()->exception($throwable);
 ```
 
 控制器中直接 `return`：
@@ -48,7 +48,7 @@ ap()->exception($throwable);
 ```php
 public function show(int $id)
 {
-    return ap()->ok(['id' => $id]);
+    return api_response()->ok(['id' => $id]);
 }
 ```
 
@@ -90,7 +90,7 @@ body `code` 与 HTTP 状态码已解耦：
 - `Accept` 包含 `application/json` 或 `+json`
 - 路径匹配 `render_api_paths`（默认 `/api/*`）
 
-业务代码只需 `throw`，无需手动 `return ap()->exception(...)`。
+业务代码只需 `throw`，无需手动 `return api_response()->exception(...)`。
 
 ### 内置 exception_pipes
 

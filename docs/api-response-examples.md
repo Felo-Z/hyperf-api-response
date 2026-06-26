@@ -26,10 +26,10 @@ class UserController
     {
         $user = User::query()->find($id);
         if (! $user) {
-            return ap()->notFound('用户不存在');
+            return api_response()->notFound('用户不存在');
         }
 
-        return ap()->ok($user->toArray(), '查询成功');
+        return api_response()->ok($user->toArray(), '查询成功');
     }
 
     #[PostMapping(path: '')]
@@ -37,7 +37,7 @@ class UserController
     {
         $user = User::query()->create($request->all());
 
-        return ap()->created($user->toArray(), '创建成功', "/api/users/{$user->id}");
+        return api_response()->created($user->toArray(), '创建成功', "/api/users/{$user->id}");
     }
 }
 ```
@@ -79,7 +79,7 @@ class CreateUserRequest extends FormRequest
 public function store(CreateUserRequest $request): ResponseInterface
 {
     $user = User::query()->create($request->validated());
-    return ap()->created($user->toArray(), '创建成功');
+    return api_response()->created($user->toArray(), '创建成功');
 }
 ```
 
@@ -158,14 +158,14 @@ class OrderService
 public function cancel(int $id, OrderService $service): ResponseInterface
 {
     $service->cancel($id);
-    return ap()->ok(null, '取消成功');
+    return api_response()->ok(null, '取消成功');
 }
 ```
 
 ## 4. Debug 场景
 
 ```php
-return ap()->debug(
+return api_response()->debug(
     ['sql' => $query, 'bindings' => $bindings],
     '调试信息',
     500  // HTTP 状态码

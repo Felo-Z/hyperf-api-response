@@ -46,11 +46,11 @@ if (! function_exists('app_debug_cache_key')) {
     }
 }
 
-if (! function_exists('ap')) {
+if (! function_exists('api_response')) {
     /**
      * 获取 API 响应构造器实例.
      */
-    function ap(): ApiResponseContract
+    function api_response(): ApiResponseContract
     {
         return ApplicationContext::getContainer()->get(ApiResponseContract::class);
     }

@@ -41,7 +41,7 @@ class OrderCode
 ```php
 use App\Support\ApiCodes\UserCode;
 
-return ap()->failed('用户不存在', UserCode::USER_NOT_FOUND, 400);
+return api_response()->failed('用户不存在', UserCode::USER_NOT_FOUND, 400);
 ```
 
 包内也提供了通用业务码 `FeloZ\HyperfApiResponse\Support\ApiCode`（`BIZ_OK`、`BIZ_FAILED` 等），适合快速上手。
@@ -141,7 +141,7 @@ use App\Support\ApiCodes\UserCode;
 throw new BizException('用户不存在', UserCode::USER_NOT_FOUND, ['user_id' => $id]);
 ```
 
-异常由 `ApiExceptionHandler` 自动接管，无需手动 `return ap()->exception(...)`。
+异常由 `ApiExceptionHandler` 自动接管，无需手动 `return api_response()->exception(...)`。
 
 ## 3. 宏方法扩展
 
@@ -157,7 +157,7 @@ ApiResponse::macro('userNotFound', function () {
 });
 
 // 业务中使用
-return ap()->userNotFound();
+return api_response()->userNotFound();
 ```
 
 ## 4. 替换实现（重度定制）

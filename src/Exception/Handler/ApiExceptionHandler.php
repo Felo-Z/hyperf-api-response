@@ -9,7 +9,7 @@ use Hyperf\ExceptionHandler\ExceptionHandler;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
-use function ap;
+use function api_response;
 
 class ApiExceptionHandler extends ExceptionHandler
 {
@@ -21,7 +21,7 @@ class ApiExceptionHandler extends ExceptionHandler
     {
         $this->stopPropagation();
 
-        return ap()->exception($throwable);
+        return api_response()->exception($throwable);
     }
 
     public function isValid(Throwable $throwable): bool

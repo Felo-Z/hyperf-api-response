@@ -4,6 +4,16 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [3.0.0] - 2026-06-26
+
+### 重大变更
+
+- 移除 `ap()` 辅助函数，统一改用 `api_response()`
+
+### 新增
+
+- `api_response()` 辅助函数
+
 ## [2.0.0] - 2026-06-25
 
 ### 重大变更
@@ -41,7 +51,8 @@
 ## [1.0.0] - 初始发布
 
 - 统一 API JSON 响应与 `ApiExceptionHandler`
-- `ap()` 辅助函数与 Pipeline 扩展机制
+- 响应辅助函数与 Pipeline 扩展机制
 
+[3.0.0]: https://github.com/Felo-Z/hyperf-api-response/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/Felo-Z/hyperf-api-response/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/Felo-Z/hyperf-api-response/releases/tag/v1.0.0

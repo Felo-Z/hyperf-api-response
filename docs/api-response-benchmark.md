@@ -14,7 +14,7 @@
 ```php
 use Hyperf\HttpServer\Router\Router;
 
-Router::get('/api/__bench__/ok', static fn () => ap()->ok(['ping' => 'pong']));
+Router::get('/api/__bench__/ok', static fn () => api_response()->ok(['ping' => 'pong']));
 ```
 
 建议：使用与线上一致的 Swoole Worker 数量。

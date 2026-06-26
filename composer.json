@@ -1,6 +1,6 @@
 {
   "name": "felo-z/hyperf-api-response",
-  "description": "Hyperf unified API JSON responses with business codes, exception handler and ap() helper",
+  "description": "Hyperf unified API JSON responses with business codes, exception handler and api_response() helper",
   "type": "library",
   "keywords": [
     "hyperf",

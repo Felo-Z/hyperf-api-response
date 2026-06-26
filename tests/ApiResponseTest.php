@@ -18,7 +18,7 @@ class ApiResponseTest extends TestCase
 {
     public function test_ok_response(): void
     {
-        $response = ap()->ok(['id' => 1], 'done');
+        $response = api_response()->ok(['id' => 1], 'done');
         $data = $this->decodeResponse($response);
 
         $this->assertSame(200, $response->getStatusCode());
@@ -30,7 +30,7 @@ class ApiResponseTest extends TestCase
 
     public function test_message_response(): void
     {
-        $response = ap()->message('created', ['name' => 'demo'], 201);
+        $response = api_response()->message('created', ['name' => 'demo'], 201);
         $data = $this->decodeResponse($response);
 
         $this->assertSame(201, $response->getStatusCode());
@@ -42,7 +42,7 @@ class ApiResponseTest extends TestCase
 
     public function test_created_response_with_location_header(): void
     {
-        $response = ap()->created(['id' => 1], 'created', '/api/users/1');
+        $response = api_response()->created(['id' => 1], 'created', '/api/users/1');
         $data = $this->decodeResponse($response);
 
         $this->assertSame(201, $response->getStatusCode());
@@ -54,7 +54,7 @@ class ApiResponseTest extends TestCase
 
     public function test_failed_response(): void
     {
-        $response = ap()->failed('bad request', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
+        $response = api_response()->failed('bad request', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
         $data = $this->decodeResponse($response);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -66,7 +66,7 @@ class ApiResponseTest extends TestCase
 
     public function test_error_is_alias_of_failed(): void
     {
-        $response = ap()->error('bad', ApiCode::BIZ_FAILED, 400, ['k' => 'v']);
+        $response = api_response()->error('bad', ApiCode::BIZ_FAILED, 400, ['k' => 'v']);
         $data = $this->decodeResponse($response);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -78,7 +78,7 @@ class ApiResponseTest extends TestCase
 
     public function test_business_code_maps_to_http_400(): void
     {
-        $response = ap()->failed('biz fail', 200404);
+        $response = api_response()->failed('biz fail', 200404);
         $data = $this->decodeResponse($response);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -88,11 +88,11 @@ class ApiResponseTest extends TestCase
 
     public function test_common_error_shortcuts(): void
     {
-        $this->assertSame(401, ap()->unauthorized('unauthorized')->getStatusCode());
-        $this->assertSame(403, ap()->forbidden('forbidden')->getStatusCode());
-        $this->assertSame(404, ap()->notFound('not found')->getStatusCode());
-        $this->assertSame(422, ap()->unprocessableEntity('invalid')->getStatusCode());
-        $this->assertSame(500, ap()->internalServerError('server error')->getStatusCode());
+        $this->assertSame(401, api_response()->unauthorized('unauthorized')->getStatusCode());
+        $this->assertSame(403, api_response()->forbidden('forbidden')->getStatusCode());
+        $this->assertSame(404, api_response()->notFound('not found')->getStatusCode());
+        $this->assertSame(422, api_response()->unprocessableEntity('invalid')->getStatusCode());
+        $this->assertSame(500, api_response()->internalServerError('server error')->getStatusCode());
     }
 
     public function test_json_encode_failure_returns_system_error_when_not_debug(): void
@@ -100,7 +100,7 @@ class ApiResponseTest extends TestCase
         $this->setAppDebug(false);
 
         try {
-            $response = ap()->ok(['value' => NAN]);
+            $response = api_response()->ok(['value' => NAN]);
             $data = $this->decodeResponse($response);
 
             $this->assertSame(500, $response->getStatusCode());
@@ -115,7 +115,7 @@ class ApiResponseTest extends TestCase
 
     public function test_json_encode_failure_includes_detail_when_debug(): void
     {
-        $response = ap()->ok(['value' => NAN]);
+        $response = api_response()->ok(['value' => NAN]);
         $data = $this->decodeResponse($response);
 
         $this->assertSame(500, $response->getStatusCode());
@@ -127,7 +127,7 @@ class ApiResponseTest extends TestCase
 
     public function test_no_content_response_has_empty_body(): void
     {
-        $response = ap()->noContent();
+        $response = api_response()->noContent();
         $body = (string) $response->getBody();
 
         $this->assertSame(204, $response->getStatusCode());
@@ -137,7 +137,7 @@ class ApiResponseTest extends TestCase
 
     public function test_reset_content_response_has_empty_body(): void
     {
-        $response = ap()->resetContent(null, '');
+        $response = api_response()->resetContent(null, '');
         $body = (string) $response->getBody();
 
         $this->assertSame(205, $response->getStatusCode());
@@ -147,7 +147,7 @@ class ApiResponseTest extends TestCase
 
     public function test_exception_response_from_validation_exception_pipe(): void
     {
-        $response = ap()->exception(new \Hyperf\Validation\ValidationException(
+        $response = api_response()->exception(new \Hyperf\Validation\ValidationException(
             ['email' => ['邮箱格式不正确']],
             422
         ));
@@ -165,7 +165,7 @@ class ApiResponseTest extends TestCase
         $this->setAppDebug(false);
 
         try {
-            $response = ap()->exception(new \Hyperf\Validation\ValidationException(
+            $response = api_response()->exception(new \Hyperf\Validation\ValidationException(
                 ['email' => ['邮箱格式不正确']],
                 422
             ));
@@ -179,7 +179,7 @@ class ApiResponseTest extends TestCase
 
     public function test_exception_response_from_authentication_exception_pipe(): void
     {
-        $response = ap()->exception(new \Hyperf\Auth\Exception\UnauthorizedException('Token expired'));
+        $response = api_response()->exception(new \Hyperf\Auth\Exception\UnauthorizedException('Token expired'));
         $data = $this->decodeResponse($response);
 
         $this->assertSame(401, $response->getStatusCode());
@@ -190,7 +190,7 @@ class ApiResponseTest extends TestCase
 
     public function test_authentication_exception_uses_default_message_when_empty(): void
     {
-        $response = ap()->exception(new \Hyperf\Auth\Exception\UnauthorizedException(''));
+        $response = api_response()->exception(new \Hyperf\Auth\Exception\UnauthorizedException(''));
         $data = $this->decodeResponse($response);
 
         $this->assertSame(401, $response->getStatusCode());
@@ -199,7 +199,7 @@ class ApiResponseTest extends TestCase
 
     public function test_exception_response_from_business_exception_pipe(): void
     {
-        $response = ap()->exception(new TestBusinessException(
+        $response = api_response()->exception(new TestBusinessException(
             '用户不存在',
             200404,
             ['user_id' => 1]
@@ -215,7 +215,7 @@ class ApiResponseTest extends TestCase
 
     public function test_business_exception_without_error_data(): void
     {
-        $response = ap()->exception(new TestBusinessException('操作失败', ApiCode::BIZ_FAILED));
+        $response = api_response()->exception(new TestBusinessException('操作失败', ApiCode::BIZ_FAILED));
         $data = $this->decodeResponse($response);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -227,7 +227,7 @@ class ApiResponseTest extends TestCase
 
     public function test_plain_exception_is_not_handled_by_business_pipe(): void
     {
-        $response = ap()->exception(new Exception('system boom'));
+        $response = api_response()->exception(new Exception('system boom'));
         $data = $this->decodeResponse($response);
 
         $this->assertSame(500, $response->getStatusCode());
@@ -238,7 +238,7 @@ class ApiResponseTest extends TestCase
 
     public function test_exception_response_from_http_exception_pipe(): void
     {
-        $response = ap()->exception(new HttpException(404, 'not found'));
+        $response = api_response()->exception(new HttpException(404, 'not found'));
         $data = $this->decodeResponse($response);
 
         $this->assertSame(404, $response->getStatusCode());
@@ -249,7 +249,7 @@ class ApiResponseTest extends TestCase
 
     public function test_debug_with_throwable_uses_exception_flow(): void
     {
-        $response = ap()->debug(new Exception('boom'));
+        $response = api_response()->debug(new Exception('boom'));
         $data = $this->decodeResponse($response);
 
         $this->assertSame(500, $response->getStatusCode());
@@ -267,7 +267,7 @@ class ApiResponseTest extends TestCase
             return $this->failed('用户不存在', 200404, 400, ['type' => 'biz_error']);
         });
 
-        $response = ap()->userNotFound();
+        $response = api_response()->userNotFound();
         $data = $this->decodeResponse($response);
 
         $this->assertSame(400, $response->getStatusCode());
@@ -297,7 +297,7 @@ class ApiResponseTest extends TestCase
         $this->setAppDebug(false);
 
         try {
-            $response = ap()->failed('invalid', ApiCode::BIZ_VALIDATION_ERROR, 422, [
+            $response = api_response()->failed('invalid', ApiCode::BIZ_VALIDATION_ERROR, 422, [
                 'email' => ['邮箱格式不正确'],
             ]);
             $data = $this->decodeResponse($response);
@@ -313,7 +313,7 @@ class ApiResponseTest extends TestCase
         $this->setAppDebug(false);
 
         try {
-            $response = ap()->exception(new TestBusinessException(
+            $response = api_response()->exception(new TestBusinessException(
                 '用户不存在',
                 200404,
                 ['user_id' => 1]
@@ -331,7 +331,7 @@ class ApiResponseTest extends TestCase
         $this->setAppDebug(false);
 
         try {
-            $response = ap()->json(ApiCode::BIZ_SYSTEM_ERROR, 'server error', null, [
+            $response = api_response()->json(ApiCode::BIZ_SYSTEM_ERROR, 'server error', null, [
                 'type' => Exception::class,
                 'message' => 'boom',
                 'file' => '/path/to/file.php',
@@ -349,7 +349,7 @@ class ApiResponseTest extends TestCase
     public function test_status_is_always_derived_from_code(): void
     {
         // 即使 json() 传入矛盾的 status，输出仍由 code 决定
-        $response = ap()->json(ApiCode::BIZ_FAILED, 'conflict');
+        $response = api_response()->json(ApiCode::BIZ_FAILED, 'conflict');
         $data = $this->decodeResponse($response);
 
         $this->assertFalse($data['status']);
@@ -358,7 +358,7 @@ class ApiResponseTest extends TestCase
 
     public function test_failed_normalizes_biz_ok_code(): void
     {
-        $response = ap()->failed('should not succeed', ApiCode::BIZ_OK);
+        $response = api_response()->failed('should not succeed', ApiCode::BIZ_OK);
         $data = $this->decodeResponse($response);
 
         $this->assertFalse($data['status']);
@@ -367,7 +367,7 @@ class ApiResponseTest extends TestCase
 
     public function test_message_pipe_fills_default_from_http_status(): void
     {
-        $response = ap()->notFound('');
+        $response = api_response()->notFound('');
         $data = $this->decodeResponse($response);
 
         $this->assertSame(404, $response->getStatusCode());
@@ -379,7 +379,7 @@ class ApiResponseTest extends TestCase
         $this->setAppDebug(false);
 
         try {
-            $response = ap()->failed('bad request', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
+            $response = api_response()->failed('bad request', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
             $body = (string) $response->getBody();
 
             $this->assertStringNotContainsString("\n", $body);
@@ -390,7 +390,7 @@ class ApiResponseTest extends TestCase
 
     public function test_failed_response_is_pretty_when_debug(): void
     {
-        $response = ap()->failed('bad request', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
+        $response = api_response()->failed('bad request', ApiCode::BIZ_FAILED, 400, ['field' => 'name']);
         $body = (string) $response->getBody();
 
         $this->assertStringContainsString("\n", $body);
