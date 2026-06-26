@@ -37,27 +37,40 @@ api_response()->exception(new \Exception('boom'));
 
 ## 3. 响应结构
 
-所有响应遵循统一 JSON 结构：
+成功响应示例：
 
 ```json
 {
   "status": true,
   "code": 0,
   "message": "OK",
-  "data": {},
-  "error": {}
+  "data": {}
+}
+```
+
+失败响应示例（有错误详情时）：
+
+```json
+{
+  "status": false,
+  "code": 1001,
+  "message": "邮箱格式不正确",
+  "data": null,
+  "error": {
+    "email": ["邮箱格式不正确"]
+  }
 }
 ```
 
 | 字段 | 说明 |
 |------|------|
 | `status` | 业务状态，`true` 或 `false`，满足 `status === (code === 0)` |
-| `code` | **业务码**（`0` = 成功，`1000+` = 框架错误，项目域码建议 `≥ 10000`） |
+| `code` | **业务码**：`0` = 成功；`1000–1999` = 包内置 `ApiCode`；其它整数 = 项目自定义（运行时无范围校验，建议避开 `1000–1999`） |
 | `message` | 面向客户端的提示文案 |
 | `data` | 成功数据（失败时为 `null`） |
-| `error` | 错误详情（生产环境可隐藏） |
+| `error` | 可选；有传入或 Pipe 产出时出现。生产环境会隐藏系统堆栈类诊断信息 |
 
-HTTP 状态码在传输层独立存在，不写入 body `code`。
+HTTP 状态码在传输层独立存在，不写入 body `code`。`204` / `205` 无响应 body。
 
 ## 4. 核心方法
 
@@ -110,9 +123,9 @@ HTTP 状态码在传输层独立存在，不写入 body `code`。
 'api_response' => [
     'enable_exception_handler' => (bool) env('FELO_API_ENABLE_EXCEPTION_HANDLER', true),
     'render_api_paths' => ['/api/*'],
-        'hide_error_when_not_debug' => (bool) env('FELO_API_HIDE_ERROR', true),
-        'app_debug' => (bool) env('APP_DEBUG', false),
-        'fallback_success_status_code' => 200,
+    'hide_error_when_not_debug' => (bool) env('FELO_API_HIDE_ERROR', true),
+    'app_debug' => (bool) env('APP_DEBUG', false),
+    'fallback_success_status_code' => 200,
     'fallback_error_status_code' => 400,
     'pipes' => [
         MessagePipe::class,
@@ -214,6 +227,8 @@ class BizExceptionPipe
 | `BIZ_TOO_MANY_REQUESTS` | 1006 | 请求频率过高 |
 | `BIZ_SYSTEM_ERROR` | 1999 | 系统异常 |
 
+项目自定义码（如 `200404`）需在业务项目中自建常量类，见 [项目扩展指南](api-response-project-extension.md)。
+
 ## 10. 宏扩展
 
 `ApiResponse` 支持 `Macroable`，可注册自定义方法：
@@ -222,7 +237,7 @@ class BizExceptionPipe
 use FeloZ\HyperfApiResponse\Support\ApiResponse;
 
 ApiResponse::macro('userNotFound', function () {
-    return $this->failed('用户不存在', 200404, 400, ['type' => 'biz_error']);
+    return $this->failed('用户不存在', \App\Support\ApiCodes\UserCode::NOT_FOUND, 400);
 });
 
 // 使用

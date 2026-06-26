@@ -26,7 +26,7 @@ use function Hyperf\Config\config;
  *
  * 业务码命名空间：
  *   - 包级 ApiCode：1000-1999（框架层通用错误）
- *   - 业务项目 ErrorCode：建议 ≥ 10000（领域业务错误）
+ *   - 项目自定义码：建议使用 1000-1999 以外的整数（如按域分段 200404），运行时无校验
  */
 class ApiResponse implements ApiResponseContract
 {

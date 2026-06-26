@@ -9,18 +9,17 @@
   "status": true,
   "code": 0,
   "message": "OK",
-  "data": {},
-  "error": {}
+  "data": {}
 }
 ```
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `status` | `boolean` | 业务成功标记，满足 `status === (code === 0)` |
-| `code` | `integer` | **业务码**（`0` = 成功，非 0 = 失败） |
+| `code` | `integer` | **业务码**（`0` = 成功；`1000–1999` = 包内置；其它 = 项目自定义） |
 | `message` | `string` | 面向客户端的简要提示 |
 | `data` | `any` | 成功结果主体（失败时为 `null`） |
-| `error` | `object\|null` | 错误详情（生产环境可隐藏） |
+| `error` | `object\|null` | 可选；错误详情（生产环境可能省略系统诊断信息） |
 
 HTTP 状态码在传输层独立控制，不写入 body `code`。
 
@@ -40,19 +39,35 @@ HTTP 状态码在传输层独立控制，不写入 body `code`。
 | `1006` | 限流 | 429 |
 | `1999` | 系统异常 | 500 |
 
-### 项目业务码（建议 ≥ 10000）
+### 项目业务码（项目自建常量类）
 
-按业务域分段：
+包**不提供** `UserCode`、`OrderCode` 等类，需在业务项目 `app/Support/ApiCodes/` 中自行创建。推荐按业务域分段（团队约定，运行时无校验）：
 
 - 用户域：`2xxxxx`（如 `200404` = 用户不存在）
 - 订单域：`3xxxxx`（如 `300422` = 订单状态无效）
 - 支付域：`4xxxxx`
 
+**请避开 `1000–1999`**（包内置 `ApiCode` 占用）。创建与用法见 [项目扩展指南](api-response-project-extension.md)。
+
 业务码失败时 HTTP 状态码默认 `400`；需要时可显式指定（如 404、422）。
 
 ## 3. 错误对象约定
 
-推荐 `error` 结构：
+### 包默认格式
+
+内置 Pipe 产出的 `error` 多为**扁平结构**，例如校验失败：
+
+```json
+{
+  "email": ["邮箱格式不正确"]
+}
+```
+
+业务异常可通过 `getErrorData()` 传入任意数组。
+
+### 团队可选增强格式
+
+若希望统一 `type` / `details` 包装，可在项目 Pipe 或 `BizException` 的 `getErrorData()` 中自行约定，例如：
 
 ```json
 {
@@ -63,16 +78,7 @@ HTTP 状态码在传输层独立控制，不写入 body `code`。
 }
 ```
 
-- `type`：错误类型（`validation_error`、`biz_error`、`system_error`）
-- `details`：字段级错误或业务细节
-
-校验失败时 `error` 也可直接使用 Laravel/Hyperf 风格的字段映射：
-
-```json
-{
-  "email": ["邮箱格式不正确"]
-}
-```
+前端需与后端约定一致；**不要假设包默认会输出 `type` / `details`**。
 
 ## 4. 成功响应示例
 

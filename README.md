@@ -52,33 +52,77 @@ public function show(int $id)
 }
 ```
 
+## 文档
+
+| 文档 | 说明 |
+| --- | --- |
+| [api-response.md](docs/api-response.md) | 完整使用手册 |
+| [api-response-examples.md](docs/api-response-examples.md) | Controller / 验证 / 异常接入示例 |
+| [api-response-project-extension.md](docs/api-response-project-extension.md) | **项目自建 `UserCode` / `OrderCode` 等业务码常量** |
+| [api-response-frontend-quick.md](docs/api-response-frontend-quick.md) | 前端判定规则（精简版） |
+| [api-response-contract-template.md](docs/api-response-contract-template.md) | 前后端协作约定模板 |
+| [api-response-production-template.md](docs/api-response-production-template.md) | 生产环境配置模板 |
+| [api-response-benchmark.md](docs/api-response-benchmark.md) | pipes 性能压测 |
+
 ## 响应结构
+
+成功响应示例（`error` 字段通常不出现）：
 
 ```json
 {
   "status": true,
   "code": 0,
   "message": "OK",
-  "data": {},
-  "error": {}
+  "data": {}
+}
+```
+
+失败响应示例（有 `$error` 或 Pipe 产出时才有 `error`）：
+
+```json
+{
+  "status": false,
+  "code": 1001,
+  "message": "邮箱格式不正确",
+  "data": null,
+  "error": {
+    "email": ["邮箱格式不正确"]
+  }
 }
 ```
 
 | 字段 | 说明 |
 | --- | --- |
 | `status` | 业务状态（`true` / `false`），满足 `status === (code === 0)` |
-| `code` | **业务码**（`0` = 成功，`1000+` = 框架/业务错误，项目域码建议 `≥ 10000`） |
+| `code` | **业务码**：`0` = 成功；`1000–1999` = 包内置（`ApiCode`）；其它整数 = 项目自定义（见 [项目扩展指南](docs/api-response-project-extension.md)） |
 | `message` | 提示文案 |
-| `data` | 成功数据 |
-| `error` | 错误详情（生产环境仅隐藏系统堆栈类诊断信息） |
+| `data` | 成功数据；失败时为 `null` |
+| `error` | 可选；错误详情。生产环境会隐藏系统堆栈类诊断信息 |
 
-HTTP 状态码在传输层独立控制（如 `ok()` → 200、`notFound()` → 404），**不写入** body `code`。
+HTTP 状态码在传输层独立控制（如 `ok()` → 200、`notFound()` → 404），**不写入** body `code`。`204` / `205` 响应无 body（符合 RFC）。
+
+## 项目业务码
+
+包不提供 `UserCode`、`OrderCode` 等类，需在业务项目中按域自建常量类，例如：
+
+```php
+// app/Support/ApiCodes/UserCode.php
+final class UserCode
+{
+    public const NOT_FOUND = 200404;
+}
+
+// 使用
+return api_response()->failed('用户不存在', UserCode::NOT_FOUND, 400);
+```
+
+完整创建步骤见 [docs/api-response-project-extension.md](docs/api-response-project-extension.md)。
 
 ## HTTP 状态码策略
 
 body `code` 与 HTTP 状态码已解耦：
 
-- **body `code`**：始终为业务码（成功 `0`，失败 `1000+` 或项目自定义码）
+- **body `code`**：成功 `0`；包内置 `1000–1999`；项目自定义建议使用该区间以外的整数
 - **HTTP 状态码**：由方法参数或快捷方法决定（如 `failed($msg, $code, 400, $error)`、`notFound()` → 404）
 
 业务失败默认 HTTP `400`，避免被网关误判为系统 500；需要时可显式传入其他 HTTP 码。
@@ -189,8 +233,7 @@ curl -i -H "Accept: application/json" http://127.0.0.1:9501/api/not-exists
   "status": false,
   "code": 1004,
   "message": "Not Found",
-  "data": null,
-  "error": {}
+  "data": null
 }
 ```
 

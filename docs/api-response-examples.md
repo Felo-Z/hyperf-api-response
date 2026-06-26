@@ -87,7 +87,18 @@ public function store(CreateUserRequest $request): ResponseInterface
 
 ## 3. 业务异常示例
 
-推荐实现 `BusinessThrowable` 接口，由内置 `BusinessExceptionPipe` 自动处理：
+推荐实现 `BusinessThrowable` 接口，由内置 `BusinessExceptionPipe` 自动处理。
+
+业务码使用项目自建常量类（包内不包含，需自行创建），详见 [项目扩展指南](api-response-project-extension.md)：
+
+```php
+// app/Support/ApiCodes/OrderCode.php
+final class OrderCode
+{
+    public const NOT_FOUND = 300404;
+    public const STATUS_INVALID = 300422;
+}
+```
 
 ```php
 <?php
@@ -132,6 +143,7 @@ namespace App\Service;
 
 use App\Exception\BizException;
 use App\Model\Order;
+use App\Support\ApiCodes\OrderCode;
 
 class OrderService
 {
@@ -139,11 +151,11 @@ class OrderService
     {
         $order = Order::query()->find($orderId);
         if (! $order) {
-            throw new BizException('订单不存在', 300404);
+            throw new BizException('订单不存在', OrderCode::NOT_FOUND);
         }
 
         if ($order->status === 'paid') {
-            throw new BizException('已支付订单不可取消', 300422, ['status' => $order->status]);
+            throw new BizException('已支付订单不可取消', OrderCode::STATUS_INVALID, ['status' => $order->status]);
         }
 
         $order->update(['status' => 'canceled']);

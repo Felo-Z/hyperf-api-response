@@ -4,6 +4,17 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### 变更
+
+- 文档：业务码约定与代码对齐——`0` 成功、`1000–1999` 包内置 `ApiCode`、其余整数为项目自定义（运行时无范围校验）；移除「≥ 10000」表述
+- 文档：响应结构示例区分成功/失败，`error` 标注为可选字段；404 等示例与真实输出一致
+- 文档：重写 [项目扩展指南](docs/api-response-project-extension.md)，补充 `UserCode` / `OrderCode` 等常量类在业务项目中的创建、目录结构与三种用法
+- 文档：`README` 增加 docs 索引；配置示例缩进与完整项修正；benchmark 默认 pipe 数量笔误修正
+- 文档：`contract-template` 区分包默认 `error` 格式与团队可选增强格式
+- `ApiResponse` 类注释：项目自定义码说明与上述约定一致
+
 ## [3.0.0] - 2026-06-26
 
 ### 重大变更
