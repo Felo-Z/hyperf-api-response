@@ -14,7 +14,7 @@ use Hyperf\Config\Config;
 use Hyperf\Context\ApplicationContext;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Container;
-use Hyperf\Di\Definition\DefinitionSourceFactory;
+use Hyperf\Di\Definition\DefinitionSource;
 use Hyperf\HttpMessage\Server\Response as PsrResponse;
 use Hyperf\HttpServer\Response;
 use PHPUnit\Framework\TestCase as BaseTestCase;
@@ -32,7 +32,7 @@ abstract class TestCase extends BaseTestCase
             'api-response' => require dirname(__DIR__) . '/src/publish/api-response.php',
         ]);
 
-        $this->container = new Container((new DefinitionSourceFactory(true))());
+        $this->container = new Container(new DefinitionSource([]));
         $this->container->set(ConfigInterface::class, $config);
         $this->container->set(Response::class, new Response(new PsrResponse()));
         $this->container->set(ApiResponseContract::class, new ApiResponse(

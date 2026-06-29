@@ -418,6 +418,17 @@ class ApiResponseTest extends TestCase
         $this->assertTrue($classifier->shouldHandleAsApi());
     }
 
+    public function test_request_classifier_matches_json_accept_case_insensitively(): void
+    {
+        $request = (new Request('GET', new Uri('http://localhost/web/page')))
+            ->withHeader('Accept', 'Application/Json');
+        Context::set(\Psr\Http\Message\ServerRequestInterface::class, $request);
+
+        $classifier = new RequestClassifier();
+
+        $this->assertTrue($classifier->shouldHandleAsApi());
+    }
+
     public function test_request_classifier_skips_non_api_request(): void
     {
         $request = (new Request('GET', new Uri('http://localhost/web/page')))

@@ -39,7 +39,7 @@ class RequestClassifier
 
     protected function wantsJson(ServerRequestInterface $request): bool
     {
-        $accept = $request->getHeaderLine('Accept');
+        $accept = strtolower($request->getHeaderLine('Accept'));
 
         return str_contains($accept, 'application/json')
             || str_contains($accept, '+json');
