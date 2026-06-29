@@ -456,6 +456,18 @@ class ApiResponse implements ApiResponseContract
                 $body['error'] = $structure['error'];
             }
 
+            if (array_key_exists('trace_id', $structure)) {
+                $body['trace_id'] = $structure['trace_id'];
+            }
+
+            if (array_key_exists('span_id', $structure)) {
+                $body['span_id'] = $structure['span_id'];
+            }
+
+            if (array_key_exists('trace_log', $structure)) {
+                $body['trace_log'] = $structure['trace_log'];
+            }
+
             $options = JSON_UNESCAPED_UNICODE;
             if (! $status && app_debug()) {
                 $options |= JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES;

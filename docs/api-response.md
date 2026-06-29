@@ -10,6 +10,7 @@
 - [前端判定规则](api-response-frontend-quick.md)
 - [性能压测指南](api-response-benchmark.md)
 - [生产配置模板](api-response-production-template.md)
+- [请求级 Trace 调试](api-response-trace.md)
 
 ## 1. 安装
 
@@ -69,8 +70,13 @@ api_response()->exception(new \Exception('boom'));
 | `message` | 面向客户端的提示文案 |
 | `data` | 成功数据（失败时为 `null`） |
 | `error` | 可选；有传入或 Pipe 产出时出现。生产环境会隐藏系统堆栈类诊断信息 |
+| `trace_id` | 可选；入参 `trace=true` 时出现，与 OpenTelemetry TraceId 对齐 |
+| `span_id` | 可选；有 OTel 上下文或 `traceparent` 头时出现 |
+| `trace_log` | 可选；`trace=true` 时出现，由 `api_trace()` 写入的有序调试日志 |
 
 HTTP 状态码在传输层独立存在，不写入 body `code`。`204` / `205` 无响应 body。
+
+请求级 trace 调试详见 [api-response-trace.md](api-response-trace.md)。
 
 ## 4. 核心方法
 
@@ -127,9 +133,15 @@ return [
     'app_debug' => (bool) env('API_RESPONSE_APP_DEBUG', env('APP_DEBUG', false)),
     'fallback_success_status_code' => 200,
     'fallback_error_status_code' => 400,
+    'trace' => [
+        'enabled' => (bool) env('API_RESPONSE_TRACE_ENABLED', true),
+        'param' => env('API_RESPONSE_TRACE_PARAM', 'trace'),
+        'max_entries' => (int) env('API_RESPONSE_TRACE_MAX_ENTRIES', 100),
+    ],
     'pipes' => [
         MessagePipe::class,
         ErrorPipe::class,
+        \FeloZ\HyperfApiResponse\Support\Pipes\TracePipe::class,
     ],
     'exception_pipes' => [
         BusinessExceptionPipe::class,
@@ -264,8 +276,12 @@ exception(throwable)
   → Pipeline: BusinessExceptionPipe → AuthenticationExceptionPipe → HttpExceptionPipe → ValidationExceptionPipe
     → exceptionDestination(): 生成 code/message/error/http_status/headers 结构
   → buildJson(code, message, null, error, http_status) + withHeaders(headers)
-    → 进入普通 pipes 流程
+    → 进入普通 pipes 流程（MessagePipe → ErrorPipe → TracePipe）
 ```
+
+### `trace=true` 请求流程
+
+详见 [请求级 Trace 调试](api-response-trace.md)，含完整时序图与组件流程图。
 
 ## 12. 使用建议
 

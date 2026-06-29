@@ -37,7 +37,9 @@
     "ext-swoole": "Required to run the test suite (or use swoole-cli)",
     "hyperf/validation": "Required for ValidationExceptionPipe (~3.2.0)",
     "hyperf/auth": "Required for AuthenticationExceptionPipe (~3.2.0)",
-    "felo-z/hyperf-helper": "Optional helpers such as app() and is_pro()"
+    "felo-z/hyperf-helper": "Optional helpers such as app() and is_pro()",
+    "open-telemetry/opentelemetry": "Reuse trace_id from OpenTelemetry Span context",
+    "hyperf/opentelemetry": "Hyperf OpenTelemetry integration"
   },
   "autoload": {
     "psr-4": {

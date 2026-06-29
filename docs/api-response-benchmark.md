@@ -68,5 +68,58 @@ ab -n 10000 -c 100 "http://127.0.0.1:9501/api/__bench__/ok"
 
 - 保持 pipe 逻辑轻量、无 IO、无阻塞
 - 重业务逻辑放在服务层，不放 pipe
-- 默认 2 个 pipe 通常不会成为性能瓶颈
+- 默认 3 个 pipe（MessagePipe + ErrorPipe + TracePipe）通常不会成为性能瓶颈
 - Swoole 常驻内存模式下 pipe 实例化开销极低
+
+## 8. Trace 压测
+
+对比 `trace=true` 与不带 trace 参数时的 HTTP 延迟差异。trace 机制说明见 [api-response-trace.md](api-response-trace.md)。
+
+### wrk 需要 PHP 扩展吗？
+
+**不需要。** `wrk` 是独立的 HTTP 压测 CLI 工具，与 PHP 无关；在压测机上单独安装即可：
+
+```bash
+# macOS
+brew install wrk
+
+# Debian / Ubuntu
+sudo apt install wrk
+```
+
+被压测的 Hyperf 服务仍需要 Swoole 运行时；wrk 本身不依赖任何 PHP 扩展。
+
+### 压测路由
+
+```php
+use Hyperf\HttpServer\Router\Router;
+
+Router::get('/api/__bench__/ok', static function () {
+    api_trace('bench', ['t' => time()]);
+    return api_response()->ok(['ping' => 'pong']);
+});
+```
+
+### 压测命令
+
+```bash
+# 基线：无 trace
+wrk -t4 -c100 -d30s --latency "http://127.0.0.1:9501/api/__bench__/ok"
+
+# 实验：trace=true
+wrk -t4 -c100 -d30s --latency "http://127.0.0.1:9501/api/__bench__/ok?trace=true"
+```
+
+### 结果记录
+
+| 组别 | Avg Latency | P95 | P99 | Req/Sec |
+|------|-------------|-----|-----|---------|
+| 无 trace | | | | |
+| trace=true（无 api_trace） | | | | |
+| trace=true（含 api_trace） | | | | |
+
+### 结果解读
+
+- 仅 `trace=true`、几乎不写 `api_trace`：延迟差值通常在微秒～零点几毫秒，可忽略
+- 大量 `api_trace` 或大 `ctx`：关注 P99 与响应体体积增长
+- 差值异常时检查是否在 `ctx` 中塞入了过大的调试数据

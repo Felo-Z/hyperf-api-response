@@ -62,7 +62,8 @@ public function show(int $id)
 | [api-response-frontend-quick.md](docs/api-response-frontend-quick.md) | 前端判定规则（精简版） |
 | [api-response-contract-template.md](docs/api-response-contract-template.md) | 前后端协作约定模板 |
 | [api-response-production-template.md](docs/api-response-production-template.md) | 生产环境配置模板 |
-| [api-response-benchmark.md](docs/api-response-benchmark.md) | pipes 性能压测 |
+| [api-response-benchmark.md](docs/api-response-benchmark.md) | pipes / trace 性能压测 |
+| [api-response-trace.md](docs/api-response-trace.md) | 请求级 trace 调试（`trace_log` / `api_trace()`） |
 
 ## 响应结构
 

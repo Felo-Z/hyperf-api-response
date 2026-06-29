@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Tests;
 
 use FeloZ\HyperfApiResponse\Support\ApiResponse;
+use FeloZ\HyperfApiResponse\Support\ApiTrace;
 use FeloZ\HyperfApiResponse\Support\Contracts\ApiResponseContract;
+use FeloZ\HyperfApiResponse\Support\Trace\TraceContext;
+use FeloZ\HyperfApiResponse\Support\Trace\TraceIdResolver;
+use FeloZ\HyperfApiResponse\Support\Trace\TraceParamResolver;
 use Hyperf\Config\Config;
 use Hyperf\Context\ApplicationContext;
 use Hyperf\Contract\ConfigInterface;
@@ -34,12 +38,16 @@ abstract class TestCase extends BaseTestCase
         $this->container->set(ApiResponseContract::class, new ApiResponse(
             $this->container->get(Response::class)
         ));
+        $this->container->set(ApiTrace::class, new ApiTrace());
+        $this->container->set(TraceParamResolver::class, new TraceParamResolver());
+        $this->container->set(TraceIdResolver::class, new TraceIdResolver());
 
         ApplicationContext::setContainer($this->container);
     }
 
     protected function tearDown(): void
     {
+        TraceContext::clear();
         ApiResponse::clearMacros();
 
         parent::tearDown();

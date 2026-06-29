@@ -15,9 +15,16 @@ return [
     'hide_error_when_not_debug' => true,
     'fallback_success_status_code' => 200,
     'fallback_error_status_code' => 400,
+    'trace' => [
+        // 生产环境若不需要客户端调试，建议关闭
+        'enabled' => (bool) env('API_RESPONSE_TRACE_ENABLED', false),
+        'param' => env('API_RESPONSE_TRACE_PARAM', 'trace'),
+        'max_entries' => 100,
+    ],
     'pipes' => [
         \FeloZ\HyperfApiResponse\Support\Pipes\MessagePipe::class,
         \FeloZ\HyperfApiResponse\Support\Pipes\ErrorPipe::class,
+        \FeloZ\HyperfApiResponse\Support\Pipes\TracePipe::class,
     ],
     'exception_pipes' => [
         \FeloZ\HyperfApiResponse\Support\ExceptionPipes\BusinessExceptionPipe::class,
@@ -44,6 +51,8 @@ APP_DEBUG=false
 API_RESPONSE_ENABLE_EXCEPTION_HANDLER=true
 API_RESPONSE_HIDE_ERROR=true
 API_RESPONSE_APP_DEBUG=false
+API_RESPONSE_TRACE_ENABLED=false
+API_RESPONSE_TRACE_PARAM=trace
 ```
 
 未设置 `API_RESPONSE_APP_DEBUG` 时回退读取 `APP_DEBUG`。

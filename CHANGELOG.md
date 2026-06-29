@@ -6,6 +6,17 @@
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-06-29
+
+### 新增
+
+- 请求级 trace 调试：`trace=true` 时响应输出 `trace_id`、`span_id`（可选）、`trace_log`
+- `api_trace()` 辅助函数与 `ApiTraceMiddleware`（默认注册）
+- `TracePipe`：响应构建时注入 trace 字段
+- `trace_id` 与 OpenTelemetry TraceId 对齐（OTel Span → `traceparent` → 生成）
+- 环境变量：`API_RESPONSE_TRACE_ENABLED`、`API_RESPONSE_TRACE_PARAM`、`API_RESPONSE_TRACE_MAX_ENTRIES`
+- 文档：[请求级 Trace 调试](docs/api-response-trace.md)
+
 ## [4.0.0] - 2026-06-26
 
 ### 重大变更

@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace FeloZ\HyperfApiResponse;
 
 use FeloZ\HyperfApiResponse\Exception\Handler\ApiExceptionHandler;
+use FeloZ\HyperfApiResponse\Middleware\ApiTraceMiddleware;
 use FeloZ\HyperfApiResponse\Support\ApiResponse;
+use FeloZ\HyperfApiResponse\Support\ApiTrace;
 use FeloZ\HyperfApiResponse\Support\Contracts\ApiResponseContract;
+use FeloZ\HyperfApiResponse\Support\Trace\TraceIdResolver;
+use FeloZ\HyperfApiResponse\Support\Trace\TraceParamResolver;
 
 class ConfigProvider
 {
@@ -15,6 +19,14 @@ class ConfigProvider
         return [
             'dependencies' => [
                 ApiResponseContract::class => ApiResponse::class,
+                ApiTrace::class => ApiTrace::class,
+                TraceParamResolver::class => TraceParamResolver::class,
+                TraceIdResolver::class => TraceIdResolver::class,
+            ],
+            'middlewares' => [
+                'http' => [
+                    ApiTraceMiddleware::class,
+                ],
             ],
             'annotations' => [
                 'scan' => [
